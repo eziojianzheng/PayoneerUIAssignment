@@ -39,7 +39,7 @@ namespace PayoneerUIAssignment.Tests
             {
                 new ProductInfo("HP Z8000 BLUETOOTH MOUSE", 1, "Black", 50.99m),
                  new ProductInfo("HP ZBOOK 17 G2 MOBILE WORKSTATION", 2, "gray", 1799m),
-                new ProductInfo("HP ELITE X2 1011 G1 TABLET", 3, "Black", 1279m)
+                new ProductInfo("HP ELITE X2 1011 G1 TABLET", 1, "Black", 1279m)
             };
             
             Logger.Info("开始执行多个商品搜索测试");
