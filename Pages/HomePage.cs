@@ -84,7 +84,7 @@ namespace PayoneerUIAssignment.Pages
                 searchInputElement.Clear();
                 searchInputElement.SendKeys(productName);
                 searchInputElement.SendKeys(Keys.Enter);
-                WaitForPageFullyLoaded();
+                ForcedWait(5);
                 
                 Logger.Info($"已提交搜索: {productName}");
                 return new SearchCategories(Driver, ExtentTest);
