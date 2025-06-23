@@ -17,10 +17,13 @@ namespace PayoneerUIAssignment.Common
 
         public TestContext TestContext { get; set; }
 
+        /// <summary>
+        /// Initializes test class setup - creates required directories
+        /// </summary>
         [ClassInitialize]
         public static void ClassSetup(TestContext testContext)
         {
-            // 确保 Screenshots 目录存在
+            // Ensure Screenshots directory exists
             var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "Screenshots");
             if (!Directory.Exists(screenshotDir))
             {
@@ -28,51 +31,60 @@ namespace PayoneerUIAssignment.Common
             }
         }
 
+        /// <summary>
+        /// Cleans up test class resources and generates final report
+        /// </summary>
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            // 生成报告
+            // Generate final report
             ExtentReportManager.Flush();
         }
 
+        /// <summary>
+        /// Sets up individual test - initializes driver, config, and reporting
+        /// </summary>
         [TestInitialize]
         public void TestSetup()
         {
-            // 创建测试报告条目
+            // Create test report entry
             ExtentTest = ExtentReportManager.CreateTest(TestContext.TestName);
 
-            LogHelper.LogInfo($"开始执行测试: {TestContext.TestName}", ExtentTest);
+            LogHelper.LogInfo($"Starting test execution: {TestContext.TestName}", ExtentTest);
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("Config/appsettings.json")
-                .AddEnvironmentVariables();// 添加环境变量支持
+                .AddEnvironmentVariables(); // Add environment variable support
 
             Config = builder.Build();
 
-            // 优先使用环境变量或测试参数
+            // Priority: test parameters > environment variables > config file
             string browser = TestContext.Properties["Browser"]?.ToString()
                 ?? Environment.GetEnvironmentVariable("Browser")
                 ?? Config["Browser"];
 
-            LogHelper.LogInfo($"使用浏览器: {browser}", ExtentTest);
+            LogHelper.LogInfo($"Using browser: {browser}", ExtentTest);
 
             Driver = DriverFactory.CreateDriver(browser);
             Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-            LogHelper.LogInfo("浏览器驱动初始化完成", ExtentTest);
+            LogHelper.LogInfo("Browser driver initialized successfully", ExtentTest);
         }
 
+        /// <summary>
+        /// Cleans up individual test - handles screenshots, logging, and driver cleanup
+        /// </summary>
         [TestCleanup]
         public void TestCleanup()
         {
             try
             {
-                // 在测试失败时截图
+                // Take screenshot on test failure
                 if (TestContext.CurrentTestOutcome != UnitTestOutcome.Passed)
                 {
-                    LogHelper.LogFail($"测试未通过: {TestContext.CurrentTestOutcome}", ExtentTest);
+                    LogHelper.LogFail($"Test failed: {TestContext.CurrentTestOutcome}", ExtentTest);
 
-                    // 截图并添加到报告
+                    // Capture screenshot and add to report
                     string screenshotPath = TakeScreenshot("failure-screenshot");
                     if (!string.IsNullOrEmpty(screenshotPath))
                     {
@@ -81,35 +93,48 @@ namespace PayoneerUIAssignment.Common
                 }
                 else
                 {
-                    LogHelper.LogPass("测试通过", ExtentTest);
+                    LogHelper.LogPass("Test passed successfully", ExtentTest);
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.LogError($"测试清理过程中出错: {ex.Message}", ex, ExtentTest);
+                LogHelper.LogError($"Error during test cleanup: {ex.Message}", ex, ExtentTest);
             }
             finally
             {
                 if (Driver != null)
                 {
-                    LogHelper.LogInfo("关闭浏览器驱动", ExtentTest);
+                    LogHelper.LogInfo("Closing browser driver", ExtentTest);
                     Driver.Quit();
                     Driver = null;
                 }
-                ExtentReportManager.Flush();
+                try
+                {
+                    ExtentReportManager.Flush();
+                }
+                catch (Exception flushEx)
+                {
+                    // Prevent flush exceptions from affecting test cleanup
+                    Console.WriteLine($"ExtentReport flush error: {flushEx.Message}");
+                }
             }
         }
 
+        /// <summary>
+        /// Captures screenshot with timestamp and saves to Screenshots directory
+        /// </summary>
+        /// <param name="name">Screenshot filename prefix</param>
+        /// <returns>Full path to saved screenshot file</returns>
         protected string TakeScreenshot(string name = "screenshot")
         {
             try
             {
                 if (Driver is ITakesScreenshot ts)
                 {
-                    LogHelper.LogInfo($"正在截图: {name}", ExtentTest);
+                    LogHelper.LogInfo($"Taking screenshot: {name}", ExtentTest);
                     var screenshot = ts.GetScreenshot();
 
-                    // 保存截图到文件系统，便于调试
+                    // Save screenshot to filesystem for debugging
                     var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                     var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "Screenshots");
                     if (!Directory.Exists(screenshotDir))
@@ -119,13 +144,13 @@ namespace PayoneerUIAssignment.Common
 
                     var screenshotPath = Path.Combine(screenshotDir, $"{name}_{timestamp}.png");
                     screenshot.SaveAsFile(screenshotPath);
-                    LogHelper.LogInfo($"截图已保存到: {screenshotPath}", ExtentTest);
+                    LogHelper.LogInfo($"Screenshot saved to: {screenshotPath}", ExtentTest);
                     return screenshotPath;
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.LogError($"截图失败: {ex.Message}", ex, ExtentTest);
+                LogHelper.LogError($"Screenshot capture failed: {ex.Message}", ex, ExtentTest);
             }
             return null;
         }
