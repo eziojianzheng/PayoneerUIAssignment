@@ -59,17 +59,17 @@ namespace PayoneerUIAssignment.Pages
                     var loaders = driver.FindElements(By.CssSelector("div.loader"));
                     return loaders.Count == 0 || loaders.All(loader => !loader.Displayed);
                 });
-                Logger.Info("加载器已消失");
+                LogHelper.LogInfo("加载器已消失", ExtentTest);
             }
             catch (Exception ex)
             {
-                Logger.Info($"等待加载器消失超时: {ex.Message}");
+                LogHelper.LogInfo($"等待加载器消失超时: {ex.Message}", ExtentTest);
             }
         }
 
         protected void ForcedWait(int seconds)
         {
-            Logger.Info($"强制等待 {seconds} 秒");
+            LogHelper.LogInfo($"强制等待 {seconds} 秒", ExtentTest);
             System.Threading.Thread.Sleep(seconds * 1000);
         }
 
@@ -77,7 +77,7 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info("等待页面完全加载");
+                LogHelper.LogInfo("等待页面完全加载", ExtentTest);
                 
                 var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
                 wait.Until(driver => {
@@ -92,11 +92,11 @@ namespace PayoneerUIAssignment.Pages
                     return pageReady && jqueryReady;
                 });
                 
-                Logger.Info("页面已完全加载");
+                LogHelper.LogInfo("页面已完全加载", ExtentTest);
             }
             catch (Exception ex)
             {
-                Logger.Info($"等待页面完全加载超时: {ex.Message}");
+                LogHelper.LogInfo($"等待页面完全加载超时: {ex.Message}", ExtentTest);
             }
         }
 
@@ -110,21 +110,18 @@ namespace PayoneerUIAssignment.Pages
 
                 if (isDisplayed)
                 {
-                    Logger.Info($"找到错误消息: '{errorText}'");
-                    ExtentTest?.Info($"找到错误消息: '{errorText}'");
+                    LogHelper.LogInfo($"找到错误消息: '{errorText}'", ExtentTest);
                 }
                 else
                 {
-                    Logger.Info($"未找到错误消息: '{errorText}'");
-                    ExtentTest?.Info($"未找到错误消息: '{errorText}'");
+                    LogHelper.LogInfo($"未找到错误消息: '{errorText}'", ExtentTest);
                 }
 
                 return isDisplayed;
             }
             catch (Exception ex)
             {
-                Logger.Error($"检查错误消息时出错: {ex.Message}", ex);
-                ExtentTest?.Error($"检查错误消息时出错: {ex.Message}");
+                LogHelper.LogError($"检查错误消息时出错: {ex.Message}", ex, ExtentTest);
                 return false;
             }
         }
@@ -135,16 +132,14 @@ namespace PayoneerUIAssignment.Pages
             try
             {
                 Driver.Navigate().GoToUrl(url);
-                Logger.Info($"导航到 {url}");
-                ExtentTest?.Info($"导航到 {url}");
+                LogHelper.LogInfo($"导航到 {url}", ExtentTest);
 
                 var page = (TPage)Activator.CreateInstance(typeof(TPage), Driver, ExtentTest);
                 return page;
             }
             catch (Exception ex)
             {
-                Logger.Error($"导航到 {url} 失败", ex);
-                ExtentTest?.Error($"导航到 {url} 失败: {ex.Message}");
+                LogHelper.LogError($"导航到 {url} 失败", ex, ExtentTest);
                 throw;
             }
         }

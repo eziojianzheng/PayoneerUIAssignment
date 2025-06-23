@@ -13,7 +13,6 @@ namespace PayoneerUIAssignment.Common
     {
         private static readonly Lazy<ExtentReports> _instance = new Lazy<ExtentReports>(() => InitializeReport());
         private static readonly object _lock = new object();
-        private static bool _isFlushed = false;
 
         private static ExtentReports Instance => _instance.Value;
 
@@ -67,16 +66,14 @@ namespace PayoneerUIAssignment.Common
 
         /// <summary>
         /// Flushes the report data to file in a thread-safe manner
-        /// Prevents multiple flush operations
         /// </summary>
         public static void Flush()
         {
             lock (_lock)
             {
-                if (_instance.IsValueCreated && !_isFlushed)
+                if (_instance.IsValueCreated)
                 {
                     Instance.Flush();
-                    _isFlushed = true;
                 }
             }
         }

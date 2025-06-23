@@ -17,22 +17,22 @@ namespace PayoneerUIAssignment.Pages
         public HomePage Login(string username, string password)
         {
            
-            ExtentTest?.Info("开始登录操作");
+            LogHelper.LogInfo("开始登录操作", ExtentTest);
 
             FindElementWithWait(menuUserField).Click();
-            ExtentTest?.Info($"点击userLogin的Menum");
+            LogHelper.LogInfo($"点击userLogin的Menum", ExtentTest);
 
             FindElementWithWait(usernameField).SendKeys(username);
-            ExtentTest?.Info($"输入用户名: {username}");
+            LogHelper.LogInfo($"输入用户名: {username}", ExtentTest);
 
             FindElementWithWait(passwordField).SendKeys(password);
-            ExtentTest?.Info("输入密码");
+            LogHelper.LogInfo("输入密码", ExtentTest);
 
             WaitForLoaderToDisappear(30);
             FindElementWithWait(loginButton).Click();
-            ExtentTest?.Info("点击登录按钮");
+            LogHelper.LogInfo("点击登录按钮", ExtentTest);
 
-            Logger.Info($"用户 {username} 已登录");
+            LogHelper.LogInfo($"用户 {username} 已登录", ExtentTest);
         
 
             var homePage = new HomePage(Driver, ExtentTest);

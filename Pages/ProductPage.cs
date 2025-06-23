@@ -22,17 +22,17 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info("检查商品详情页是否加载成功");
+                LogHelper.LogInfo("检查商品详情页是否加载成功", ExtentTest);
                 
                 var titleElement = FindElementWithWait(productTitle);
                 bool isLoaded = titleElement.Displayed;
                 
-                Logger.Info($"商品详情页加载状态: {(isLoaded ? "成功" : "失败")}");
+                LogHelper.LogInfo($"商品详情页加载状态: {(isLoaded ? "成功" : "失败")}", ExtentTest);
                 return isLoaded;
             }
             catch (Exception ex)
             {
-                Logger.Info($"检查商品详情页失败: {ex.Message}");
+                LogHelper.LogInfo($"检查商品详情页失败: {ex.Message}", ExtentTest);
                 return false;
             }
         }
@@ -41,17 +41,17 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info($"选择颜色: {colorName}");
+                LogHelper.LogInfo($"选择颜色: {colorName}", ExtentTest);
                 
                 By colorLocator = By.CssSelector($"span.productColor[title='{colorName.ToUpper()}']");
                 var colorElement = FindElementWithWait(colorLocator);
                 colorElement.Click();
                 
-                Logger.Info($"已选择颜色: {colorName}");
+                LogHelper.LogInfo($"已选择颜色: {colorName}", ExtentTest);
             }
             catch (Exception ex)
             {
-                Logger.Info($"选择颜色{colorName}失败: {ex.Message}");
+                LogHelper.LogInfo($"选择颜色{colorName}失败: {ex.Message}", ExtentTest);
                 throw;
             }
         }
@@ -60,7 +60,7 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info($"设置商品数量: {quantity}");
+                LogHelper.LogInfo($"设置商品数量: {quantity}", ExtentTest);
                 
                 By quantityInput = By.Name("quantity");
                 var quantityElement = FindElementWithWait(quantityInput);
@@ -71,11 +71,11 @@ namespace PayoneerUIAssignment.Pages
                 quantityElement.SendKeys(Keys.Backspace);     // 删除
                 quantityElement.SendKeys(quantity.ToString());
                 
-                Logger.Info($"已设置商品数量: {quantity}");
+                LogHelper.LogInfo($"已设置商品数量: {quantity}", ExtentTest);
             }
             catch (Exception ex)
             {
-                Logger.Info($"设置商品数量{quantity}失败: {ex.Message}");
+                LogHelper.LogInfo($"设置商品数量{quantity}失败: {ex.Message}", ExtentTest);
                 throw;
             }
         }
@@ -84,18 +84,18 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info("检查商品是否成功添加到购物车");
+                LogHelper.LogInfo("检查商品是否成功添加到购物车", ExtentTest);
                 
                 By checkoutPopup = By.Id("checkOutPopUp");
                 var popupElement = FindElementWithWait(checkoutPopup);
                 bool isSuccessful = popupElement.Displayed;
                 
-                Logger.Info($"添加到购物车状态: {(isSuccessful ? "成功" : "失败")}");
+                LogHelper.LogInfo($"添加到购物车状态: {(isSuccessful ? "成功" : "失败")}", ExtentTest);
                 return isSuccessful;
             }
             catch (Exception ex)
             {
-                Logger.Info($"检查添加购物车状态失败: {ex.Message}");
+                LogHelper.LogInfo($"检查添加购物车状态失败: {ex.Message}", ExtentTest);
                 return false;
             }
         }
@@ -104,7 +104,7 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info("等待结账弹出框消失");
+                LogHelper.LogInfo("等待结账弹出框消失", ExtentTest);
                 
                 var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
                 wait.Until(driver => {
@@ -112,17 +112,17 @@ namespace PayoneerUIAssignment.Pages
                     return popups.Count == 0 || popups.All(popup => !popup.Displayed);
                 });
                 
-                Logger.Info("结账弹出框已消失");
+                LogHelper.LogInfo("结账弹出框已消失", ExtentTest);
             }
             catch (Exception ex)
             {
-                Logger.Info($"等待结账弹出框消失超时: {ex.Message}");
+                LogHelper.LogInfo($"等待结账弹出框消失超时: {ex.Message}", ExtentTest);
             }
         }
 
         public bool AddToCart(string colorName, int quantity)
         {
-            Logger.Info($"开始添加商品到购物车 - 颜色: {colorName}, 数量: {quantity}");
+            LogHelper.LogInfo($"开始添加商品到购物车 - 颜色: {colorName}, 数量: {quantity}", ExtentTest);
             
             // 1. 选择颜色
             SelectColor(colorName);
@@ -135,47 +135,47 @@ namespace PayoneerUIAssignment.Pages
             {
                 try
                 {
-                    Logger.Info($"第{attempt}次尝试点击添加到购物车按钮");
+                    LogHelper.LogInfo($"第{attempt}次尝试点击添加到购物车按钮", ExtentTest);
                     
                     By addToCartButton = By.Name("save_to_cart");
                     var addButton = FindElementWithWait(addToCartButton);
                     addButton.Click();
-                    Logger.Info($"已点击添加到购物车按钮（第{attempt}次）");
+                    LogHelper.LogInfo($"已点击添加到购物车按钮（第{attempt}次）", ExtentTest);
                     
                     // 验证是否成功
                     bool isSuccessful = IsAddToCartSuccessful();
                     
                     if (isSuccessful)
                     {
-                        Logger.Info($"第{attempt}次尝试成功，商品已添加到购物车");
+                        LogHelper.LogInfo($"第{attempt}次尝试成功，商品已添加到购物车", ExtentTest);
                         WaitForCheckoutPopupToDisappear();
                         return true;
                     }
                     
-                    Logger.Info($"第{attempt}次尝试失败，未检测到成功弹出框");
+                    LogHelper.LogInfo($"第{attempt}次尝试失败，未检测到成功弹出框", ExtentTest);
                     
                     if (attempt < 3)
                     {
-                        Logger.Info("等待3秒后重试");
+                        LogHelper.LogInfo("等待3秒后重试", ExtentTest);
                         ForcedWait(3);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Info($"第{attempt}次尝试异常: {ex.Message}");
+                    LogHelper.LogInfo($"第{attempt}次尝试异常: {ex.Message}", ExtentTest);
                     
                     if (attempt == 3)
                     {
-                        Logger.Info("所有尝试均失败，抛出异常");
+                        LogHelper.LogInfo("所有尝试均失败，抛出异常", ExtentTest);
                         throw;
                     }
                     
-                    Logger.Info("等待3秒后重试");
+                    LogHelper.LogInfo("等待3秒后重试", ExtentTest);
                     ForcedWait(3);
                 }
             }
             
-            Logger.Info("所有尝试均失败，添加商品到购物车失败");
+            LogHelper.LogInfo("所有尝试均失败，添加商品到购物车失败", ExtentTest);
             return false;
         }
     }

@@ -23,7 +23,7 @@ namespace PayoneerUIAssignment.Common
 
             IWebDriver driver = null;
             bool headless = Environment.GetEnvironmentVariable("HeadlessMode")?.ToLower() == "true";
-            Logger.Info($"Creating {browser} driver, Headless mode: {headless}");
+            LogHelper.LogInfo($"Creating {browser} driver, Headless mode: {headless}");
 
             if (browser.ToLower() != "chrome")
             {
@@ -44,12 +44,12 @@ namespace PayoneerUIAssignment.Common
         {
             try
             {
-                Logger.Info("Creating Chrome driver");
+                LogHelper.LogInfo("Creating Chrome driver");
                 return CreateChromeDriver(headless);
             }
             catch (Exception ex)
             {
-                Logger.Error($"Failed to create Chrome driver: {ex.Message}", ex);
+                LogHelper.LogError($"Failed to create Chrome driver: {ex.Message}", ex);
                 throw new InvalidOperationException($"Chrome driver creation failed: {ex.Message}", ex);
             }
         }
@@ -76,13 +76,13 @@ namespace PayoneerUIAssignment.Common
 
             // Use fixed driver path
             string driverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "drivers");
-            Logger.Info($"Using driver path: {driverPath}");
+            LogHelper.LogInfo($"Using driver path: {driverPath}");
 
             if (!Directory.Exists(driverPath))
             {
-                Logger.Info($"Driver path does not exist: {driverPath}");
+                LogHelper.LogInfo($"Driver path does not exist: {driverPath}");
                 // If driver path doesn't exist, try using system Chrome
-                Logger.Info("Attempting to create ChromeDriver using system Chrome");
+                LogHelper.LogInfo("Attempting to create ChromeDriver using system Chrome");
                 return new ChromeDriver(chromeOptions);
             }
 

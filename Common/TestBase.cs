@@ -41,8 +41,7 @@ namespace PayoneerUIAssignment.Common
             // 创建测试报告条目
             ExtentTest = ExtentReportManager.CreateTest(TestContext.TestName);
 
-            Logger.Info($"开始执行测试: {TestContext.TestName}");
-            ExtentTest.Info($"开始执行测试: {TestContext.TestName}");
+            LogHelper.LogInfo($"开始执行测试: {TestContext.TestName}", ExtentTest);
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -56,13 +55,11 @@ namespace PayoneerUIAssignment.Common
                 ?? Environment.GetEnvironmentVariable("Browser")
                 ?? Config["Browser"];
 
-            Logger.Info($"使用浏览器: {browser}");
-            ExtentTest.Info($"使用浏览器: {browser}");
+            LogHelper.LogInfo($"使用浏览器: {browser}", ExtentTest);
 
             Driver = DriverFactory.CreateDriver(browser);
             Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-            Logger.Info("浏览器驱动初始化完成");
-            ExtentTest.Info("浏览器驱动初始化完成");
+            LogHelper.LogInfo("浏览器驱动初始化完成", ExtentTest);
         }
 
         [TestCleanup]
@@ -73,8 +70,7 @@ namespace PayoneerUIAssignment.Common
                 // 在测试失败时截图
                 if (TestContext.CurrentTestOutcome != UnitTestOutcome.Passed)
                 {
-                    Logger.Info($"测试未通过: {TestContext.TestName}, 结果: {TestContext.CurrentTestOutcome}");
-                    ExtentTest.Fail($"测试未通过: {TestContext.CurrentTestOutcome}");
+                    LogHelper.LogFail($"测试未通过: {TestContext.CurrentTestOutcome}", ExtentTest);
 
                     // 截图并添加到报告
                     string screenshotPath = TakeScreenshot("failure-screenshot");
@@ -85,21 +81,18 @@ namespace PayoneerUIAssignment.Common
                 }
                 else
                 {
-                    Logger.Info($"测试通过: {TestContext.TestName}");
-                    ExtentTest.Pass("测试通过");
+                    LogHelper.LogPass("测试通过", ExtentTest);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error($"测试清理过程中出错: {ex.Message}", ex);
-                ExtentTest.Error($"测试清理过程中出错: {ex.Message}");
+                LogHelper.LogError($"测试清理过程中出错: {ex.Message}", ex, ExtentTest);
             }
             finally
             {
                 if (Driver != null)
                 {
-                    Logger.Info("关闭浏览器驱动");
-                    ExtentTest.Info("关闭浏览器驱动");
+                    LogHelper.LogInfo("关闭浏览器驱动", ExtentTest);
                     Driver.Quit();
                     Driver = null;
                 }
@@ -113,7 +106,7 @@ namespace PayoneerUIAssignment.Common
             {
                 if (Driver is ITakesScreenshot ts)
                 {
-                    Logger.Info($"正在截图: {name}");
+                    LogHelper.LogInfo($"正在截图: {name}", ExtentTest);
                     var screenshot = ts.GetScreenshot();
 
                     // 保存截图到文件系统，便于调试
@@ -126,14 +119,13 @@ namespace PayoneerUIAssignment.Common
 
                     var screenshotPath = Path.Combine(screenshotDir, $"{name}_{timestamp}.png");
                     screenshot.SaveAsFile(screenshotPath);
-                    Logger.Info($"截图已保存到: {screenshotPath}");
+                    LogHelper.LogInfo($"截图已保存到: {screenshotPath}", ExtentTest);
                     return screenshotPath;
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error($"截图失败: {ex.Message}", ex);
-                ExtentTest.Error($"截图失败: {ex.Message}");
+                LogHelper.LogError($"截图失败: {ex.Message}", ex, ExtentTest);
             }
             return null;
         }

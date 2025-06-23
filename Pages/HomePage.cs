@@ -28,16 +28,16 @@ namespace PayoneerUIAssignment.Pages
                 if (!string.IsNullOrEmpty(expectedUsername))
                 {
                     string actualUsername = userElement.Text;
-                    Logger.Info($"期望用户名: {expectedUsername}, 实际用户名: {actualUsername}");
+                    LogHelper.LogInfo($"期望用户名: {expectedUsername}, 实际用户名: {actualUsername}", ExtentTest);
                     return actualUsername.Equals(expectedUsername, StringComparison.OrdinalIgnoreCase);
                 }
                 
-                Logger.Info($"用户问候元素显示状态: {userElement.Displayed}");
+                LogHelper.LogInfo($"用户问候元素显示状态: {userElement.Displayed}", ExtentTest);
                 return userElement.Displayed;
             }
             catch (Exception ex)
             {
-                Logger.Info($"检查登录状态失败: {ex.Message}");
+                LogHelper.LogInfo($"检查登录状态失败: {ex.Message}", ExtentTest);
                 return false;
             }
         }
@@ -48,12 +48,12 @@ namespace PayoneerUIAssignment.Pages
             {
                 var userElement = FindElementWithWait(userGreeting);
                 string username = userElement.Text;
-                Logger.Info($"获取到登录用户名: {username}");
+                LogHelper.LogInfo($"获取到登录用户名: {username}", ExtentTest);
                 return username;
             }
             catch (Exception ex)
             {
-                Logger.Info($"获取登录用户名失败: {ex.Message}");
+                LogHelper.LogInfo($"获取登录用户名失败: {ex.Message}", ExtentTest);
                 return null;
             }
         }
@@ -62,13 +62,13 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info("从主页导航到购物车");
+                LogHelper.LogInfo("从主页导航到购物车", ExtentTest);
                 var cartPage = new ShoppingCartPage(Driver, ExtentTest);
                 return cartPage.NavigateToCart();
             }
             catch (Exception ex)
             {
-                Logger.Info($"导航到购物车失败: {ex.Message}");
+                LogHelper.LogInfo($"导航到购物车失败: {ex.Message}", ExtentTest);
                 throw;
             }
         }
@@ -77,7 +77,7 @@ namespace PayoneerUIAssignment.Pages
         {
             try
             {
-                Logger.Info($"开始搜索商品: {productName}");
+                LogHelper.LogInfo($"开始搜索商品: {productName}", ExtentTest);
                 
                 FindElementWithWait(menuSearch).Click();
                 var searchInputElement = FindElementWithWait(searchInput);
@@ -86,12 +86,12 @@ namespace PayoneerUIAssignment.Pages
                 searchInputElement.SendKeys(Keys.Enter);
                 ForcedWait(5);
                 
-                Logger.Info($"已提交搜索: {productName}");
+                LogHelper.LogInfo($"已提交搜索: {productName}", ExtentTest);
                 return new SearchCategories(Driver, ExtentTest);
             }
             catch (Exception ex)
             {
-                Logger.Info($"搜索商品失败: {ex.Message}");
+                LogHelper.LogInfo($"搜索商品失败: {ex.Message}", ExtentTest);
                 throw;
             }
         }
@@ -109,7 +109,7 @@ namespace PayoneerUIAssignment.Pages
             {
                 try
                 {
-                    Logger.Info("检查搜索结果");
+                    LogHelper.LogInfo("检查搜索结果", ExtentTest);
                     
                     // 检查商品元素是否存在
                     try
@@ -117,13 +117,13 @@ namespace PayoneerUIAssignment.Pages
                         var productElements = FindElementsWithWait(productElement, 5);
                         if (productElements == null || productElements.Count == 0)
                         {
-                            Logger.Info("未找到商品搜索结果");
+                            LogHelper.LogInfo("未找到商品搜索结果", ExtentTest);
                             return false;
                         }
                     }
                     catch
                     {
-                        Logger.Info("未找到商品搜索结果");
+                        LogHelper.LogInfo("未找到商品搜索结果", ExtentTest);
                         return false;
                     }
                     
@@ -134,16 +134,16 @@ namespace PayoneerUIAssignment.Pages
                     if (!string.IsNullOrEmpty(expectedProductName))
                     {
                         bool exactMatch = actualProductText.Equals(expectedProductName, StringComparison.OrdinalIgnoreCase);
-                        Logger.Info($"期望商品: {expectedProductName}, 实际结果: {actualProductText}, 精确匹配: {exactMatch}");
+                        LogHelper.LogInfo($"期望商品: {expectedProductName}, 实际结果: {actualProductText}, 精确匹配: {exactMatch}", ExtentTest);
                         return exactMatch;
                     }
                     
-                    Logger.Info($"搜索结果: {actualProductText}");
+                    LogHelper.LogInfo($"搜索结果: {actualProductText}", ExtentTest);
                     return !string.IsNullOrEmpty(actualProductText);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Info($"检查搜索结果失败: {ex.Message}");
+                    LogHelper.LogInfo($"检查搜索结果失败: {ex.Message}", ExtentTest);
                     return false;
                 }
             }
@@ -152,18 +152,18 @@ namespace PayoneerUIAssignment.Pages
             {
                 try
                 {
-                    Logger.Info("点击进入第一个搜索结果商品");
+                    LogHelper.LogInfo("点击进入第一个搜索结果商品", ExtentTest);
                     
                     var firstProduct = FindElementWithWait(productElement);
                     firstProduct.Click();
                     WaitForPageFullyLoaded();
                     
-                    Logger.Info("已点击商品，跳转到商品详情页");
+                    LogHelper.LogInfo("已点击商品，跳转到商品详情页", ExtentTest);
                     return new ProductPage(Driver, ExtentTest);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Info($"点击商品失败: {ex.Message}");
+                    LogHelper.LogInfo($"点击商品失败: {ex.Message}", ExtentTest);
                     throw;
                 }
             }
