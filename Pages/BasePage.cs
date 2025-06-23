@@ -23,17 +23,29 @@ namespace PayoneerUIAssignment.Pages
             ExtentTest = extentTest;
         }
 
-        //为selenium每一个元素添加智能等待
+        /// <summary>
+        /// Finds element with smart wait - waits for element to be displayed and enabled
+        /// </summary>
         protected IWebElement FindElementWithWait(By locator, int timeoutSeconds = 15)
         {
             WaitForLoaderToDisappear();
             var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
             return wait.Until(driver => {
-                var element = driver.FindElement(locator);
-                return element.Displayed && element.Enabled ? element : null;
+                try
+                {
+                    var element = driver.FindElement(locator);
+                    return element.Displayed && element.Enabled ? element : null;
+                }
+                catch (NoSuchElementException)
+                {
+                    return null;
+                }
             });
         }
 
+        /// <summary>
+        /// Finds multiple elements with wait - returns when at least one element is found
+        /// </summary>
         protected IList<IWebElement> FindElementsWithWait(By locator, int timeoutSeconds = 15)
         {
             WaitForLoaderToDisappear();
@@ -44,12 +56,18 @@ namespace PayoneerUIAssignment.Pages
             });
         }
 
+        /// <summary>
+        /// Finds elements without explicit wait - only waits for loader to disappear
+        /// </summary>
         protected IList<IWebElement> FindElementsWithoutWait(By locator)
         {
             WaitForLoaderToDisappear();
             return Driver.FindElements(locator);
         }
 
+        /// <summary>
+        /// Waits for loading indicators to disappear from the page
+        /// </summary>
         protected void WaitForLoaderToDisappear(int timeoutSeconds = 30)
         {
             try
@@ -59,47 +77,56 @@ namespace PayoneerUIAssignment.Pages
                     var loaders = driver.FindElements(By.CssSelector("div.loader"));
                     return loaders.Count == 0 || loaders.All(loader => !loader.Displayed);
                 });
-                LogHelper.LogInfo("加载器已消失", ExtentTest);
+                LogHelper.LogInfo("Loader disappeared", ExtentTest);
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"等待加载器消失超时: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Loader wait timeout: {ex.Message}", ExtentTest);
             }
         }
 
+        /// <summary>
+        /// Forces thread to wait for specified seconds - use sparingly
+        /// </summary>
         protected void ForcedWait(int seconds)
         {
-            LogHelper.LogInfo($"强制等待 {seconds} 秒", ExtentTest);
+            LogHelper.LogInfo($"Forced wait for {seconds} seconds", ExtentTest);
             System.Threading.Thread.Sleep(seconds * 1000);
         }
 
+        /// <summary>
+        /// Waits for page to be fully loaded including JavaScript and jQuery
+        /// </summary>
         protected void WaitForPageFullyLoaded(int timeoutSeconds = 30)
         {
             try
             {
-                LogHelper.LogInfo("等待页面完全加载", ExtentTest);
+                LogHelper.LogInfo("Waiting for page to fully load", ExtentTest);
                 
                 var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
                 wait.Until(driver => {
-                    // 页面加载完成
+                    // Page loading complete
                     var pageReady = ((IJavaScriptExecutor)driver)
                         .ExecuteScript("return document.readyState").Equals("complete");
                     
-                    // jQuery加载完成（如果存在）
+                    // jQuery loading complete (if exists)
                     var jqueryReady = (bool)((IJavaScriptExecutor)driver)
                         .ExecuteScript("return typeof jQuery == 'undefined' || jQuery.active == 0");
                         
                     return pageReady && jqueryReady;
                 });
                 
-                LogHelper.LogInfo("页面已完全加载", ExtentTest);
+                LogHelper.LogInfo("Page fully loaded", ExtentTest);
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"等待页面完全加载超时: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Page load wait timeout: {ex.Message}", ExtentTest);
             }
         }
 
+        /// <summary>
+        /// Checks if error message with specified text is displayed on page
+        /// </summary>
         public bool IsErrorMessageDisplayed(string errorText)
         {
             try
@@ -110,36 +137,38 @@ namespace PayoneerUIAssignment.Pages
 
                 if (isDisplayed)
                 {
-                    LogHelper.LogInfo($"找到错误消息: '{errorText}'", ExtentTest);
+                    LogHelper.LogInfo($"Found error message: '{errorText}'", ExtentTest);
                 }
                 else
                 {
-                    LogHelper.LogInfo($"未找到错误消息: '{errorText}'", ExtentTest);
+                    LogHelper.LogInfo($"Error message not found: '{errorText}'", ExtentTest);
                 }
 
                 return isDisplayed;
             }
             catch (Exception ex)
             {
-                LogHelper.LogError($"检查错误消息时出错: {ex.Message}", ex, ExtentTest);
+                LogHelper.LogError($"Error checking error message: {ex.Message}", ex, ExtentTest);
                 return false;
             }
         }
 
-
+        /// <summary>
+        /// Navigates to specified URL and returns new page instance
+        /// </summary>
         public TPage NavigateTo<TPage>(string url) where TPage : BasePage
         {
             try
             {
                 Driver.Navigate().GoToUrl(url);
-                LogHelper.LogInfo($"导航到 {url}", ExtentTest);
+                LogHelper.LogInfo($"Navigated to {url}", ExtentTest);
 
                 var page = (TPage)Activator.CreateInstance(typeof(TPage), Driver, ExtentTest);
                 return page;
             }
             catch (Exception ex)
             {
-                LogHelper.LogError($"导航到 {url} 失败", ex, ExtentTest);
+                LogHelper.LogError($"Navigation to {url} failed", ex, ExtentTest);
                 throw;
             }
         }

@@ -4,11 +4,13 @@ using System.Linq;
 using AventStack.ExtentReports;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using PayoneerUIAssignment.Pages;
 using PayoneerUIAssignment.Common;
 
 namespace PayoneerUIAssignment.Pages
 {
+    /// <summary>
+    /// Product information model for cart operations
+    /// </summary>
     public class ProductInfo
     {
         public string Name { get; set; }
@@ -25,6 +27,9 @@ namespace PayoneerUIAssignment.Pages
         }
     }
 
+    /// <summary>
+    /// Shopping cart page object for cart management operations
+    /// </summary>
     public class ShoppingCartPage : BasePage
     {
         private readonly By cartIcon = By.Id("menuCart");
@@ -32,54 +37,64 @@ namespace PayoneerUIAssignment.Pages
         private readonly By deleteButton = By.CssSelector("a.remove.red.ng-scope[translate='REMOVE']");
         private readonly By emptyCartMessage = By.CssSelector("label.roboto-bold.ng-scope[translate='Your_shopping_cart_is_empty']");
         private readonly By continueShoppingButton = By.CssSelector("a.a-button.ng-scope[translate='CONTINUE_SHOPPING']");
+        private readonly By totalPriceElement = By.CssSelector("#shoppingCart tfoot span.roboto-medium.ng-binding");
         
         public ShoppingCartPage(IWebDriver driver, ExtentTest extentTest = null) : base(driver, extentTest)
         {
         }
 
+        /// <summary>
+        /// Navigates to shopping cart page
+        /// </summary>
         public ShoppingCartPage NavigateToCart()
         {
             try
             {
-                LogHelper.LogInfo("导航到购物车页面", ExtentTest);
+                LogHelper.LogInfo("Navigating to shopping cart page", ExtentTest);
                 var cartElement = FindElementWithWait(cartIcon);
                 cartElement.Click();
                 
-                // 等待弹出框消失
+                // Wait for popup to disappear
                 WaitForCartPopupToDisappear();
                 WaitForPageFullyLoaded();
-                LogHelper.LogInfo("已进入购物车页面", ExtentTest);
+                LogHelper.LogInfo("Successfully entered shopping cart page", ExtentTest);
                 return this;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"导航到购物车失败: {ex.Message}", ExtentTest);
+                LogHelper.LogError($"Navigation to shopping cart failed: {ex.Message}", ex, ExtentTest);
                 throw;
             }
         }
 
+        /// <summary>
+        /// Checks if shopping cart has items
+        /// </summary>
         public bool HasItems()
         {
             try
             {
-                LogHelper.LogInfo("检查购物车是否有商品", ExtentTest);
+                LogHelper.LogInfo("Checking if shopping cart has items", ExtentTest);
                 var items = FindElementsWithoutWait(cartItems);
                 bool hasItems = items.Count > 0;
-                LogHelper.LogInfo($"购物车商品数量: {items.Count}", ExtentTest);
+                LogHelper.LogInfo($"Shopping cart item count: {items.Count}", ExtentTest);
                 return hasItems;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"检查购物车商品失败: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Shopping cart items check failed: {ex.Message}", ExtentTest);
                 return false;
             }
         }
 
+        /// <summary>
+        /// Clears all items from shopping cart
+        /// </summary>
         public void ClearAllItems()
         {
             try
             {
-                LogHelper.LogInfo("开始清空购物车", ExtentTest);
+                LogHelper.LogInfo("Starting to clear shopping cart", ExtentTest);
                 
                 while (HasItems())
                 {
@@ -88,7 +103,7 @@ namespace PayoneerUIAssignment.Pages
                     {
                         deleteButtons[0].Click();
                         WaitForPageFullyLoaded();
-                        LogHelper.LogInfo("已删除一个商品", ExtentTest);
+                        LogHelper.LogInfo("Deleted one item", ExtentTest);
                     }
                     else
                     {
@@ -96,62 +111,68 @@ namespace PayoneerUIAssignment.Pages
                     }
                 }
                 
-                LogHelper.LogInfo("购物车已清空", ExtentTest);
+                LogHelper.LogInfo("Shopping cart cleared", ExtentTest);
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"清空购物车失败: {ex.Message}", ExtentTest);
+                LogHelper.LogError($"Clear shopping cart failed: {ex.Message}", ex, ExtentTest);
                 throw;
             }
         }
 
+        /// <summary>
+        /// Checks if shopping cart is empty
+        /// </summary>
         public bool IsEmpty()
         {
             try
             {
-                LogHelper.LogInfo("验证购物车是否为空", ExtentTest);
+                LogHelper.LogInfo("Verifying if shopping cart is empty", ExtentTest);
                 
-                // 检查空购物车消息
+                // Check for empty cart message
                 var emptyMessages = FindElementsWithoutWait(emptyCartMessage);
                 if (emptyMessages.Count > 0 && emptyMessages[0].Displayed)
                 {
                     string messageText = emptyMessages[0].Text;
-                    LogHelper.LogInfo($"找到空购物车消息: {messageText}", ExtentTest);
+                    LogHelper.LogInfo($"Found empty cart message: {messageText}", ExtentTest);
                     
                     if (messageText.Equals("Your shopping cart is empty", StringComparison.OrdinalIgnoreCase))
                     {
-                        LogHelper.LogInfo("购物车为空，点击继续购物按钮", ExtentTest);
+                        LogHelper.LogInfo("Cart is empty, clicking continue shopping button", ExtentTest);
                         ClickContinueShopping();
                         return true;
                     }
                 }
                 
-                // 如果没有空购物车消息，检查是否有商品
+                // If no empty cart message, check if there are items
                 bool isEmpty = !HasItems();
-                LogHelper.LogInfo($"购物车状态: {(isEmpty ? "空" : "有商品")}", ExtentTest);
+                LogHelper.LogInfo($"Shopping cart status: {(isEmpty ? "Empty" : "Has items")}", ExtentTest);
                 return isEmpty;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"验证购物车状态失败: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Shopping cart status verification failed: {ex.Message}", ExtentTest);
                 return false;
             }
         }
 
+        /// <summary>
+        /// Verifies cart products match expected products
+        /// </summary>
         public bool VerifyCartProducts(ProductInfo[] expectedProducts)
         {
             try
             {
-                LogHelper.LogInfo("开始验证购物车商品信息", ExtentTest);
+                LogHelper.LogInfo("Starting cart products verification", ExtentTest);
                 
                 var cartRows = FindElementsWithWait(cartItems);
                 if (cartRows.Count != expectedProducts.Length)
                 {
-                    LogHelper.LogInfo($"商品数量不匹配: 期望{expectedProducts.Length}个，实际{cartRows.Count}个", ExtentTest);
+                    LogHelper.LogInfo($"Product count mismatch: Expected {expectedProducts.Length}, Actual {cartRows.Count}", ExtentTest);
                     return false;
                 }
                 
-                // 获取购物车中的所有商品信息
+                // Get all product information from cart
                 var actualProducts = new List<ProductInfo>();
                 decimal calculatedTotal = 0;
                 
@@ -170,7 +191,7 @@ namespace PayoneerUIAssignment.Pages
                         
                         actualProducts.Add(new ProductInfo(name, quantity, color));
                         
-                        // 计算价格
+                        // Calculate price
                         var priceElement = row.FindElement(By.CssSelector("p.price.roboto-regular.ng-binding"));
                         string priceText = priceElement.Text.Replace("$", "").Replace(",", "");
                         if (decimal.TryParse(priceText, out decimal totalPrice))
@@ -179,17 +200,17 @@ namespace PayoneerUIAssignment.Pages
                             calculatedTotal += totalPrice;
                             
                             actualProducts.Last().UnitPrice = unitPrice;
-                            LogHelper.LogInfo($"商品: {name}, 单价: ${unitPrice:F2}, 数量: {quantity}, 小计: ${totalPrice:F2}, 颜色: {color}", ExtentTest);
+                            LogHelper.LogInfo($"Product: {name}, Unit Price: ${unitPrice:F2}, Quantity: {quantity}, Subtotal: ${totalPrice:F2}, Color: {color}", ExtentTest);
                         }
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.LogInfo($"提取商品信息失败: {ex.Message}", ExtentTest);
+                        LogHelper.LogInfo($"Extract product info failed: {ex.Message}", ExtentTest);
                         continue;
                     }
                 }
                 
-                // 比较商品信息（不考虑顺序）
+                // Compare product information (order independent)
                 foreach (var expected in expectedProducts)
                 {
                     var match = actualProducts.FirstOrDefault(p => 
@@ -199,12 +220,12 @@ namespace PayoneerUIAssignment.Pages
                     
                     if (match == null)
                     {
-                        LogHelper.LogInfo($"未找到匹配的商品: {expected.Name}, 数量: {expected.Quantity}, 颜色: {expected.Color}", ExtentTest);
+                        LogHelper.LogInfo($"No matching product found: {expected.Name}, Quantity: {expected.Quantity}, Color: {expected.Color}", ExtentTest);
                         return false;
                     }
                 }
                 
-                // 验证总价格
+                // Verify total price
                 string actualTotalPrice = GetTotalPrice();
                 if (!string.IsNullOrEmpty(actualTotalPrice))
                 {
@@ -213,48 +234,54 @@ namespace PayoneerUIAssignment.Pages
                     {
                         if (Math.Abs(calculatedTotal - displayedTotal) < 0.01m)
                         {
-                            LogHelper.LogInfo($"总价格验证成功: 计算总价${calculatedTotal:F2}, 显示总价{actualTotalPrice}", ExtentTest);
+                            LogHelper.LogInfo($"Total price verification successful: Calculated ${calculatedTotal:F2}, Displayed {actualTotalPrice}", ExtentTest);
                         }
                         else
                         {
-                            LogHelper.LogInfo($"总价格不匹配: 计算总价${calculatedTotal:F2}, 显示总价{actualTotalPrice}", ExtentTest);
+                            LogHelper.LogInfo($"Total price mismatch: Calculated ${calculatedTotal:F2}, Displayed {actualTotalPrice}", ExtentTest);
                             return false;
                         }
                     }
                 }
                 
-                LogHelper.LogInfo("所有商品信息和价格验证成功", ExtentTest);
+                LogHelper.LogPass("All product information and price verification successful", ExtentTest);
                 return true;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"验证购物车商品失败: {ex.Message}", ExtentTest);
+                LogHelper.LogError($"Cart products verification failed: {ex.Message}", ex, ExtentTest);
                 return false;
             }
         }
 
+        /// <summary>
+        /// Gets the total price from shopping cart
+        /// </summary>
         public string GetTotalPrice()
         {
             try
             {
-                LogHelper.LogInfo("获取购物车总价格", ExtentTest);
-                var totalPriceElement = FindElementWithWait(By.CssSelector("#shoppingCart tfoot span.roboto-medium.ng-binding"));
-                string totalPrice = totalPriceElement.Text;
-                LogHelper.LogInfo($"购物车总价格: {totalPrice}", ExtentTest);
+                LogHelper.LogInfo("Getting shopping cart total price", ExtentTest);
+                var totalElement = FindElementWithWait(totalPriceElement);
+                string totalPrice = totalElement.Text;
+                LogHelper.LogInfo($"Shopping cart total price: {totalPrice}", ExtentTest);
                 return totalPrice;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"获取总价格失败: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Get total price failed: {ex.Message}", ExtentTest);
                 return null;
             }
         }
 
+        /// <summary>
+        /// Waits for cart popup to disappear
+        /// </summary>
         private void WaitForCartPopupToDisappear(int timeoutSeconds = 10)
         {
             try
             {
-                LogHelper.LogInfo("等待购物车弹出框消失", ExtentTest);
+                LogHelper.LogInfo("Waiting for cart popup to disappear", ExtentTest);
                 
                 var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
                 wait.Until(driver => {
@@ -262,27 +289,30 @@ namespace PayoneerUIAssignment.Pages
                     return popups.Count == 0 || popups.All(popup => !popup.Displayed);
                 });
                 
-                LogHelper.LogInfo("购物车弹出框已消失", ExtentTest);
+                LogHelper.LogInfo("Cart popup disappeared", ExtentTest);
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"等待购物车弹出框消失超时: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Cart popup wait timeout: {ex.Message}", ExtentTest);
             }
         }
 
+        /// <summary>
+        /// Clicks continue shopping button
+        /// </summary>
         private void ClickContinueShopping()
         {
             try
             {
-                LogHelper.LogInfo("点击继续购物按钮", ExtentTest);
+                LogHelper.LogInfo("Clicking continue shopping button", ExtentTest);
                 var continueButton = FindElementWithWait(continueShoppingButton);
                 continueButton.Click();
                 WaitForPageFullyLoaded();
-                LogHelper.LogInfo("已点击继续购物，返回购物页面", ExtentTest);
+                LogHelper.LogInfo("Continue shopping clicked, returning to shopping page", ExtentTest);
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"点击继续购物按钮失败: {ex.Message}", ExtentTest);
+                LogHelper.LogError($"Continue shopping button click failed: {ex.Message}", ex, ExtentTest);
                 throw;
             }
         }

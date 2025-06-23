@@ -1,24 +1,26 @@
-﻿// Pages/HomePage.cs
-using AventStack.ExtentReports;
+﻿using AventStack.ExtentReports;
 using OpenQA.Selenium;
 using System;
 using PayoneerUIAssignment.Common;
-using PayoneerUIAssignment.Pages;
-using PayoneerUIAssignment.Pages;
 
 namespace PayoneerUIAssignment.Pages
 {
+    /// <summary>
+    /// Home page object containing main navigation and search functionality
+    /// </summary>
     public class HomePage : BasePage
     {
         private readonly By userGreeting = By.CssSelector("span.hi-user.containMiniTitle.ng-binding");
         private readonly By menuSearch = By.Id("menuSearch");
         private readonly By searchInput = By.Id("autoComplete");
 
-
         public HomePage(IWebDriver driver, ExtentTest extentTest = null) : base(driver, extentTest)
         {
         }
 
+        /// <summary>
+        /// Checks if user is logged in, optionally validates specific username
+        /// </summary>
         public bool IsLoggedIn(string expectedUsername = null)
         {
             try
@@ -28,56 +30,65 @@ namespace PayoneerUIAssignment.Pages
                 if (!string.IsNullOrEmpty(expectedUsername))
                 {
                     string actualUsername = userElement.Text;
-                    LogHelper.LogInfo($"期望用户名: {expectedUsername}, 实际用户名: {actualUsername}", ExtentTest);
+                    LogHelper.LogInfo($"Expected username: {expectedUsername}, Actual username: {actualUsername}", ExtentTest);
                     return actualUsername.Equals(expectedUsername, StringComparison.OrdinalIgnoreCase);
                 }
                 
-                LogHelper.LogInfo($"用户问候元素显示状态: {userElement.Displayed}", ExtentTest);
+                LogHelper.LogInfo($"User greeting element display status: {userElement.Displayed}", ExtentTest);
                 return userElement.Displayed;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"检查登录状态失败: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Login status check failed: {ex.Message}", ExtentTest);
                 return false;
             }
         }
 
+        /// <summary>
+        /// Gets the currently logged in username
+        /// </summary>
         public string GetLoggedInUsername()
         {
             try
             {
                 var userElement = FindElementWithWait(userGreeting);
                 string username = userElement.Text;
-                LogHelper.LogInfo($"获取到登录用户名: {username}", ExtentTest);
+                LogHelper.LogInfo($"Retrieved logged in username: {username}", ExtentTest);
                 return username;
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"获取登录用户名失败: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Failed to get logged in username: {ex.Message}", ExtentTest);
                 return null;
             }
         }
 
+        /// <summary>
+        /// Navigates to shopping cart page
+        /// </summary>
         public ShoppingCartPage NavigateToShoppingCart()
         {
             try
             {
-                LogHelper.LogInfo("从主页导航到购物车", ExtentTest);
+                LogHelper.LogInfo("Navigating from home page to shopping cart", ExtentTest);
                 var cartPage = new ShoppingCartPage(Driver, ExtentTest);
                 return cartPage.NavigateToCart();
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"导航到购物车失败: {ex.Message}", ExtentTest);
+                LogHelper.LogError($"Navigation to shopping cart failed: {ex.Message}", ex, ExtentTest);
                 throw;
             }
         }
 
+        /// <summary>
+        /// Searches for a product and returns search results page
+        /// </summary>
         public SearchCategories SearchProduct(string productName)
         {
             try
             {
-                LogHelper.LogInfo($"开始搜索商品: {productName}", ExtentTest);
+                LogHelper.LogInfo($"Starting product search: {productName}", ExtentTest);
                 
                 FindElementWithWait(menuSearch).Click();
                 var searchInputElement = FindElementWithWait(searchInput);
@@ -86,16 +97,19 @@ namespace PayoneerUIAssignment.Pages
                 searchInputElement.SendKeys(Keys.Enter);
                 ForcedWait(5);
                 
-                LogHelper.LogInfo($"已提交搜索: {productName}", ExtentTest);
+                LogHelper.LogInfo($"Search submitted: {productName}", ExtentTest);
                 return new SearchCategories(Driver, ExtentTest);
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"搜索商品失败: {ex.Message}", ExtentTest);
+                LogHelper.LogError($"Product search failed: {ex.Message}", ex, ExtentTest);
                 throw;
             }
         }
 
+        /// <summary>
+        /// Search results page containing product listings
+        /// </summary>
         public class SearchCategories : BasePage
         {
             private readonly By productElement = By.CssSelector("li[ng-repeat*='product in']");
@@ -105,70 +119,66 @@ namespace PayoneerUIAssignment.Pages
             {
             }
 
+            /// <summary>
+            /// Checks if search results are present, optionally validates specific product name
+            /// </summary>
             public bool HasSearchResults(string expectedProductName = null)
             {
                 try
                 {
-                    LogHelper.LogInfo("检查搜索结果", ExtentTest);
+                    LogHelper.LogInfo("Checking search results", ExtentTest);
                     
-                    // 检查商品元素是否存在
-                    try
+                    // Check if product elements exist
+                    var productElements = FindElementsWithoutWait(productElement);
+                    if (productElements == null || productElements.Count == 0)
                     {
-                        var productElements = FindElementsWithWait(productElement, 5);
-                        if (productElements == null || productElements.Count == 0)
-                        {
-                            LogHelper.LogInfo("未找到商品搜索结果", ExtentTest);
-                            return false;
-                        }
-                    }
-                    catch
-                    {
-                        LogHelper.LogInfo("未找到商品搜索结果", ExtentTest);
+                        LogHelper.LogInfo("No product search results found", ExtentTest);
                         return false;
                     }
                     
-                    // 获取商品名称文本
+                    // Get product name text
                     var nameElement = FindElementWithWait(productNameText);
                     string actualProductText = nameElement.Text;
                     
                     if (!string.IsNullOrEmpty(expectedProductName))
                     {
                         bool exactMatch = actualProductText.Equals(expectedProductName, StringComparison.OrdinalIgnoreCase);
-                        LogHelper.LogInfo($"期望商品: {expectedProductName}, 实际结果: {actualProductText}, 精确匹配: {exactMatch}", ExtentTest);
+                        LogHelper.LogInfo($"Expected product: {expectedProductName}, Actual result: {actualProductText}, Exact match: {exactMatch}", ExtentTest);
                         return exactMatch;
                     }
                     
-                    LogHelper.LogInfo($"搜索结果: {actualProductText}", ExtentTest);
+                    LogHelper.LogInfo($"Search results: {actualProductText}", ExtentTest);
                     return !string.IsNullOrEmpty(actualProductText);
                 }
                 catch (Exception ex)
                 {
-                    LogHelper.LogInfo($"检查搜索结果失败: {ex.Message}", ExtentTest);
+                    LogHelper.LogInfo($"Search results check failed: {ex.Message}", ExtentTest);
                     return false;
                 }
             }
 
+            /// <summary>
+            /// Clicks on the first product in search results
+            /// </summary>
             public ProductPage SelectFirstProduct()
             {
                 try
                 {
-                    LogHelper.LogInfo("点击进入第一个搜索结果商品", ExtentTest);
+                    LogHelper.LogInfo("Clicking first search result product", ExtentTest);
                     
                     var firstProduct = FindElementWithWait(productElement);
                     firstProduct.Click();
                     WaitForPageFullyLoaded();
                     
-                    LogHelper.LogInfo("已点击商品，跳转到商品详情页", ExtentTest);
+                    LogHelper.LogInfo("Product clicked, navigating to product details page", ExtentTest);
                     return new ProductPage(Driver, ExtentTest);
                 }
                 catch (Exception ex)
                 {
-                    LogHelper.LogInfo($"点击商品失败: {ex.Message}", ExtentTest);
+                    LogHelper.LogError($"Product click failed: {ex.Message}", ex, ExtentTest);
                     throw;
                 }
             }
-
-
         }
     }
 }
