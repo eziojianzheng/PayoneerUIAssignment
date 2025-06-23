@@ -66,22 +66,71 @@ namespace PayoneerUIAssignment.Pages
         }
 
         /// <summary>
+        /// Waits for a single element to disappear from the page
+        /// </summary>
+        /// <param name="locator">Element locator</param>
+        /// <param name="timeoutSeconds">Timeout in seconds</param>
+        /// <returns>True if element disappeared, false if timeout</returns>
+        public bool WaitForElementToDisappear(By locator, int timeoutSeconds = 30)
+        {
+            try
+            {
+                var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
+                wait.Until(driver => {
+                    var elements = driver.FindElements(locator);
+                    return elements.Count == 0 || !elements[0].Displayed;
+                });
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Waits for multiple elements to disappear from the page
+        /// </summary>
+        /// <param name="locator">Elements locator</param>
+        /// <param name="timeoutSeconds">Timeout in seconds</param>
+        /// <returns>True if all elements disappeared, false if timeout</returns>
+        public bool WaitForElementsToDisappear(By locator, int timeoutSeconds = 30)
+        {
+            try
+            {
+                var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
+                wait.Until(driver => {
+                    var elements = driver.FindElements(locator);
+                    return elements.Count == 0 || elements.All(element => !element.Displayed);
+                });
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Waits for loading indicators to disappear from the page
         /// </summary>
         protected void WaitForLoaderToDisappear(int timeoutSeconds = 30)
         {
             try
             {
-                var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
-                wait.Until(driver => {
-                    var loaders = driver.FindElements(By.CssSelector("div.loader"));
-                    return loaders.Count == 0 || loaders.All(loader => !loader.Displayed);
-                });
-                LogHelper.LogInfo("Loader disappeared", ExtentTest);
+                bool disappeared = WaitForElementsToDisappear(By.CssSelector("div.loader"), timeoutSeconds);
+                if (disappeared)
+                {
+                    LogHelper.LogInfo("Loader disappeared", ExtentTest);
+                }
+                else
+                {
+                    LogHelper.LogInfo("Loader wait timeout", ExtentTest);
+                }
             }
             catch (Exception ex)
             {
-                LogHelper.LogInfo($"Loader wait timeout: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo($"Loader wait error: {ex.Message}", ExtentTest);
             }
         }
 

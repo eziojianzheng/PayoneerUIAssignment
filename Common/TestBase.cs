@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NLog;
 using OpenQA.Selenium;
+using PayoneerUIAssignment.Pages;
 using System;
 using System.IO;
 
@@ -153,6 +154,59 @@ namespace PayoneerUIAssignment.Common
                 LogHelper.LogError($"Screenshot capture failed: {ex.Message}", ex, ExtentTest);
             }
             return null;
+        }
+
+        /// <summary>
+        /// Common login and verification process
+        /// </summary>
+        /// <param name="username">Username for login</param>
+        /// <param name="password">Password for login</param>
+        /// <returns>HomePage instance after successful login</returns>
+        protected HomePage LoginAndVerify(string username, string password)
+        {
+            LogHelper.LogInfo("Starting login process", ExtentTest);
+            
+            var loginPage = new LoginPage(Driver, ExtentTest).NavigateTo<LoginPage>(Config["BaseUrl"]);
+            TakeScreenshot("login-page");
+ 
+            var homePage = loginPage.Login(username, password);
+           
+            bool isLoggedIn = homePage.IsLoggedIn(username);
+            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(isLoggedIn, $"User {username} should be successfully logged in");
+            LogHelper.LogPass($"User {username} logged in successfully", ExtentTest);
+            
+            TakeScreenshot("home-page");
+           
+            return homePage;
+        }
+
+        /// <summary>
+        /// Common shopping cart cleanup process
+        /// </summary>
+        /// <param name="homePage">HomePage instance to navigate from</param>
+        protected void CheckAndClearShoppingCart(HomePage homePage)
+        {
+            LogHelper.LogInfo("Checking and clearing shopping cart", ExtentTest);
+            
+            var cartPage = homePage.NavigateToShoppingCart();
+            
+            if (cartPage.HasItems())
+            {
+                LogHelper.LogInfo("Shopping cart has items, starting cleanup", ExtentTest);
+                cartPage.ClearAllItems();
+                LogHelper.LogPass("Shopping cart cleared", ExtentTest);
+            }
+            else
+            {
+                LogHelper.LogInfo("Shopping cart is empty, no cleanup needed", ExtentTest);
+            }
+            
+            // Verify cart is empty and return to home page
+            bool isEmpty = cartPage.IsEmpty();
+            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(isEmpty, "Shopping cart should be empty");
+            LogHelper.LogPass("Shopping cart cleared and returned to home page", ExtentTest);
+            
+            TakeScreenshot("shopping-cart-cleared");
         }
     }
 }

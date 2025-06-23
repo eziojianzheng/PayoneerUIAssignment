@@ -116,21 +116,17 @@ namespace PayoneerUIAssignment.Pages
         /// </summary>
         private void WaitForCheckoutPopupToDisappear(int timeoutSeconds = 10)
         {
-            try
+            LogHelper.LogInfo("Waiting for checkout popup to disappear", ExtentTest);
+            
+            bool disappeared = WaitForElementToDisappear(checkoutPopup, timeoutSeconds);
+            
+            if (disappeared)
             {
-                LogHelper.LogInfo("Waiting for checkout popup to disappear", ExtentTest);
-                
-                var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
-                wait.Until(driver => {
-                    var popups = driver.FindElements(checkoutPopup);
-                    return popups.Count == 0 || popups.All(popup => !popup.Displayed);
-                });
-                
                 LogHelper.LogInfo("Checkout popup disappeared", ExtentTest);
             }
-            catch (Exception ex)
+            else
             {
-                LogHelper.LogInfo($"Checkout popup wait timeout: {ex.Message}", ExtentTest);
+                LogHelper.LogInfo("Checkout popup wait timeout", ExtentTest);
             }
         }
 
